@@ -203,12 +203,29 @@ public class KeycloakConfigurator {
         }
 
         // Update realm settings
+        Boolean organizationsEnabled = realmPg.getBooleanProperty(KeycloakConfig.PROP_ORGANIZATIONS_ENABLED);
+        if (organizationsEnabled != null) {
+            realm.setOrganizationsEnabled(organizationsEnabled);
+        }
+
+        String loginTheme = realmPg.getStringProperty(KeycloakConfig.PROP_LOGIN_THEME);
+        if (loginTheme != null) {
+            realm.setLoginTheme(loginTheme);
+        }
+
+        String emailTheme = realmPg.getStringProperty(KeycloakConfig.PROP_EMAIL_THEME);
+        if (emailTheme != null) {
+            realm.setEmailTheme(emailTheme);
+        }
+
         String browserFlow = realmPg.getStringProperty(KeycloakConfig.PROP_BROWSER_FLOW);
         if (browserFlow != null) {
             realm.setBrowserFlow(browserFlow);
         }
         realm.setEnabled(realmPg.getBooleanProperty(KeycloakConfig.PROP_REALM_ENABLED));
+        System.out.println("updating realm settings for: " + realmName);
         realms.realm(realmName).update(realm);
+        System.out.println("realm configuration complete: " + realmName);
     }
 
     /**
@@ -261,6 +278,7 @@ public class KeycloakConfigurator {
         if (clientScope == null) {
             clientScope = new ClientScopeRepresentation();
             clientScope.setName(clientScopeName);
+            clientScope.setProtocol(clientScopePg.getStringProperty(KeycloakConfig.PROP_CLIENT_SCOPE_PROTOCOL));
             clientScopes.create(clientScope);
             clientScope = getClientScopeByName(clientScopes, clientScopeName);
             if (clientScope == null) {

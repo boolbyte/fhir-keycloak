@@ -38,6 +38,9 @@ public class KeycloakConfig {
 
     // Keycloak configuration property names (relative)
     public static final String PROP_REALM_ENABLED = "enabled";
+    public static final String PROP_ORGANIZATIONS_ENABLED = "organizationsEnabled";
+    public static final String PROP_LOGIN_THEME = "loginTheme";
+    public static final String PROP_EMAIL_THEME = "emailTheme";
     public static final String PROP_CLIENT_SCOPES = "clientScopes";
     public static final String PROP_CLIENT_SCOPE_DESCRIPTION = "description";
     public static final String PROP_CLIENT_SCOPE_PROTOCOL = "protocol";

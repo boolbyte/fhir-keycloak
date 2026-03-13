@@ -27,6 +27,8 @@ COPY --from=build --chown=1001:0 keycloak-config/target/dependency/* /jars/
 COPY --from=build --chown=1001:0 keycloak-config/src/main/resources/config/keycloak-config.json /config/
 COPY --from=build --chown=1001:0 keycloak-config/run.sh /
 
+# Defaults; override at runtime via -e or docker-compose environment:
+#   KEYCLOAK_BASE_URL, KEYCLOAK_REALM, KEYCLOAK_USER, KEYCLOAK_PASSWORD, FHIR_BASE_URL
 ENV KEYCLOAK_BASE_URL=http://host.docker.internal:8080/auth \
     KEYCLOAK_REALM=test \
     KEYCLOAK_USER=admin \

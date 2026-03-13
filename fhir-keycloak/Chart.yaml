@@ -1,0 +1,10 @@
+apiVersion: v2
+name: fhir-keycloak
+description: Keycloak with SMART on FHIR extensions, Keycloakify theme, and config CLI
+
+type: application
+
+version: 0.1.0
+
+# Keycloak base version used in the image (quay.io/keycloak/keycloak:26.0.8)
+appVersion: "26.0.8"

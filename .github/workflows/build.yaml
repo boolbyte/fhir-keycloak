@@ -9,7 +9,6 @@ on:
 env:
   REGISTRY: ghcr.io
   KEYCLOAK_IMAGE_NAME: ${{ github.repository }}
-  CONFIG_IMAGE_NAME: ${{ github.repository }}-config
 
 jobs:
   build-and-push:
@@ -21,16 +20,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-        cache: 'maven'
-
-    - name: Build with Maven
-      run: mvn --batch-mode --update-snapshots clean package -DskipTests
 
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -51,15 +40,6 @@ jobs:
           type=raw,value=latest
           type=sha,prefix=,suffix=,format=short
 
-    - name: Extract metadata for Config image
-      id: meta-config
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.CONFIG_IMAGE_NAME }}
-        tags: |
-          type=raw,value=latest
-          type=sha,prefix=,suffix=,format=short
-
     - name: Build and push Keycloak image
       uses: docker/build-push-action@v5
       with:
@@ -67,16 +47,5 @@ jobs:
         push: true
         tags: ${{ steps.meta-keycloak.outputs.tags }}
         labels: ${{ steps.meta-keycloak.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-
-    - name: Build and push Config image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./keycloak-config/Dockerfile
-        push: true
-        tags: ${{ steps.meta-config.outputs.tags }}
-        labels: ${{ steps.meta-config.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max

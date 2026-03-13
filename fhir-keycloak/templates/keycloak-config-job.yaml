@@ -1,0 +1,54 @@
+{{- if .Values.keycloakConfig.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "fhir-keycloak.fullname" . }}-config
+  labels:
+    {{- include "fhir-keycloak.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 10
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        {{- include "fhir-keycloak.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: keycloak-config
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      restartPolicy: OnFailure
+      serviceAccountName: {{ include "fhir-keycloak.serviceAccountName" . }}
+      containers:
+        - name: keycloak-config
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          workingDir: /opt/keycloak-config
+          command:
+            - /opt/keycloak-config/run.sh
+          args:
+            - "-configFile"
+            - "config/keycloak-config.json"
+          env:
+            - name: KEYCLOAK_BASE_URL
+              value: "http://{{ include "fhir-keycloak.fullname" . }}:{{ .Values.service.port }}"
+            - name: KEYCLOAK_REALM
+              value: {{ index .Values.keycloakConfig.env "KEYCLOAK_REALM" | default "test" | quote }}
+            - name: KEYCLOAK_USER
+              value: {{ index .Values.keycloakConfig.env "KEYCLOAK_USER" | default (index .Values.keycloak.env "KEYCLOAK_ADMIN" | default "admin") | quote }}
+            - name: KEYCLOAK_PASSWORD
+              value: {{ index .Values.keycloakConfig.env "KEYCLOAK_PASSWORD" | default (index .Values.keycloak.env "KEYCLOAK_ADMIN_PASSWORD" | default "admin") | quote }}
+            - name: FHIR_BASE_URL
+              value: {{ index .Values.keycloakConfig.env "FHIR_BASE_URL" | default "https://localhost:9443/fhir-server/api/v4" | quote }}
+            {{- range $key, $value := .Values.keycloakConfig.env }}
+            {{- if not (or (eq $key "KEYCLOAK_BASE_URL") (eq $key "KEYCLOAK_REALM") (eq $key "KEYCLOAK_USER") (eq $key "KEYCLOAK_PASSWORD") (eq $key "FHIR_BASE_URL")) }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+{{- end }}
